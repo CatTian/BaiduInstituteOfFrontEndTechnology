@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>IFE2016中Erik笑容的动画</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        #erik {
+            height: 480px;
+            width: 100%;
+            background-image: url(erik_ce204002.jpg);
+            background-repeat: no-repeat;
+            background-size: 480px auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="erik" style="background-position: right 0;"></div>
+    <script>
+        // img (480 X 8160) 17 
+        const erik = document.querySelector('#erik')
+        const step = 480
+        const bgHeight = 8160
+        let activePosition = 0
+        let timer = setInterval(() => {
+            if (activePosition >= (bgHeight - step)) {
+                activePosition = 0
+            }
+            activePosition += step
+            erik.style.backgroundPosition = `right -${activePosition}px`
+        }, 100);
+    </script>
+</body>
+
+</html>
