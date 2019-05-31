@@ -27,12 +27,16 @@
     <script>
         // img (480 X 8160) 17 
         const erik = document.querySelector('#erik')
-        const step = 480
+        let step;
         const bgHeight = 8160
         let activePosition = 0
         let timer = setInterval(() => {
+            if (activePosition <= 0) {
+                step = 480
+            }
+            
             if (activePosition >= (bgHeight - step)) {
-                activePosition = 0
+                step = -480
             }
             activePosition += step
             erik.style.backgroundPosition = `right -${activePosition}px`
