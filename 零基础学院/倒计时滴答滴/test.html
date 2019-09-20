@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>秒更时间</title>
+</head>
+
+<body>
+    <div id="result">格式为 YYYY 年 MM 月 DD 日 星期 D HH:mm:ss</div>
+    <div id="result2">2008-10-10 Monday 07:10:30 PM</div>
+
+    <script>
+        window.onload = function () {
+            // 获取元素
+            const result = document.getElementById('result');
+            const result2 = document.getElementById('result2');
+
+            // week 返回中文格式
+            function getWeekChinese(dayIndex) {
+                const weekName = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+                return weekName[dayIndex];
+            }
+            // week 返回英文格式
+            function getWeekEnglish(dayIndex) {
+                const weekName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                return weekName[dayIndex];
+            }
+            // 补零
+            function fillZero(num) {
+                return num < 10 ? `0${num}` : num;
+            }
+            // is PM/AM
+            function outputPMorAM(hour) {
+                return hour < 12 ? 'PM' : 'AM';
+            }
+            // 格式化时间 (1)
+            function formatDate() {
+                const date = new Date();
+                const year = date.getFullYear();
+                const month = fillZero(date.getMonth() + 1);
+                const day = fillZero(date.getDate());
+                const week = getWeekChinese(date.getDay());
+                const hour = fillZero(date.getHours());
+                const minite = fillZero(date.getMinutes());
+                const second = fillZero(date.getSeconds());
+
+                return `${year}年${month}月${day}日${week} ${hour}:${minite}:${second}`;
+            }
+            // 格式化时间 (2)
+            function formatDate2() {
+                const date = new Date();
+                const year = date.getFullYear();
+                const month = fillZero(date.getMonth() + 1);
+                const day = fillZero(date.getDate());
+                const week = getWeekEnglish(date.getDay());
+                const hour = fillZero(date.getHours());
+                const minite = fillZero(date.getMinutes());
+                const second = fillZero(date.getSeconds());
+                const PMorAM = outputPMorAM(hour);
+
+                return `${year}-${month}-${day} ${week} ${hour}:${minite}:${second} ${PMorAM}`;
+            }
+            // 输出时间
+            function outputFormatDate() {
+                result.innerHTML = formatDate();
+                result2.innerHTML=formatDate2();
+            }
+
+            // 更新时间 1000
+            setInterval(outputFormatDate, 1000);
+        }
+    </script>
+</body>
+
+</html>
