@@ -11,48 +11,17 @@
 <body>
     <!-- 倒计时练习 -->
     <!-- 年：2000-2032 -->
-    <select id="year-select">
-        <option value="2000">2000</option>
-        <option value="2001">2001</option>
-        <option value="2002">2002</option>
-        ……
-        <option value="2032">2002</option>
-    </select>
+    <select id="year-select"></select>
     <!-- 月：1-12 -->
-    <select id="month-select">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        ……
-        <option value="12">12</option>
-    </select>
+    <select id="month-select"></select>
     <!-- 日：1-28/29/30/31 -->
-    <select id="day-select">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        ……
-        <option value="31">31</option>
-    </select>
+    <select id="day-select"></select>
     <!-- 时：00-23 -->
-    <select id="hour-select">
-        <option value="0">00</option>
-        <option value="1">01</option>
-        ……
-        <option value="23">23</option>
-    </select>
+    <select id="hour-select"></select>
     <!-- 分：0-59 -->
-    <select id="minite-select">
-        <option value="0">0</option>
-        <option value="1">1</option>
-        ……
-        <option>59</option>
-    </select>
+    <select id="minite-select"></select>
     <!-- 秒：0-59 -->
-    <select id="second-select">
-        <option value="0">0</option>
-        <option value="1">1</option>
-        ……
-        <option>59</option>
-    </select>
+    <select id="second-select"></select>
 
     <p id="result-wrapper">现在距离 2001年1月1日星期X HH:MM:SS 还有 X 天 X 小时 X 分 X 秒</p>
     <script>
@@ -65,9 +34,10 @@
             const miniteDom = document.getElementById('minite-select');
             const secondDom = document.getElementById('second-select');
             const result = document.getElementById('result-wrapper');
+            // 缓存 day 选项的值
+            let dayValue;
 
-
-            // 遍历
+            // 遍历 year month day minite second 选项
             function loopOption(start, end, dom) {
                 let optionStr = '';
                 for (let i = start; i < end + 1; i++) {
@@ -76,7 +46,7 @@
                 dom.innerHTML = optionStr;
             }
 
-            // 小时
+            // 遍历 hour 选项
             function loopHourOption(start, end, dom) {
                 let optionStr = '';
                 for (let i = start; i < end + 1; i++) {
@@ -87,29 +57,34 @@
             }
 
             // 判断是否是闰年 2月分为29天，平年为28天
+            // 因为年的范围是 2000-2032，所以直接减去 2000 ，直接判断（0-32）提高性能
             function isLeapYear(year) {
-                return year % 4 == 0;
+                return (year - 2000) % 4 === 0;
             }
 
             // 选择不同月份的时候，日期的可选范围不一样，比如1月可以选31天，11月只有30天，注意闰年
-            // 31天月份
-            function loopDay(month = 1) {
+            function getDayLength(month) {
                 let dayLen;
                 let startDay = 1;
+                // 31天月份
                 const day31 = [1, 3, 5, 7, 8, 10, 12];
 
                 if (day31.indexOf(month *= 1) > -1) {
-                    dayLen = 31;
+                    return dayLen = 31;
                 } else {
-                    dayLen = month === 2 ? (isLeapYear(yearDom.value) ? 29 : 28) : 30;
+                    return dayLen = month === 2 ? (isLeapYear(yearDom.value) ? 29 : 28) : 30;
                 }
-                loopOption(startDay, dayLen, dayDom);
             }
 
-            // 格式化 select 时间
+            // 遍历 day
+            function loopDay(month = 1) {
+                const dayLen = getDayLength(month);
+                loopOption(1, dayLen, dayDom);
+            }
+
+            // 星期X
             function getWeek(dayIndex) {
                 const weekName = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-
                 return weekName[dayIndex];
             }
             // 补零
@@ -162,41 +137,47 @@
                 result.innerHTML = `现在距离 ${formatSelectDate} ${str} ${formatDiffStamps(Math.abs(diffStamps))}`;
             }
 
-            // 初始化年选项
-            loopOption(2000, 2032, yearDom);
-            // 初始化月选项
-            loopOption(1, 12, monthDom);
-            // 默认初始化1月
-            loopDay();
-            // 初始化小时
-            loopHourOption(0, 23, hourDom);
-            // 初始化分钟
-            loopOption(0, 59, miniteDom);
-            // 初始化秒
-            loopOption(0, 59, secondDom);
-            // 初始化计算时差
-            countTime();
+            // 页面初始化
+            (function () {
+                // 初始化年选项
+                loopOption(2000, 2032, yearDom);
+                // 初始化月选项
+                loopOption(1, 12, monthDom);
+                // 默认初始化1月
+                loopDay();
+                // 初始化小时
+                loopHourOption(0, 23, hourDom);
+                // 初始化分钟
+                loopOption(0, 59, miniteDom);
+                // 初始化秒
+                loopOption(0, 59, secondDom);
+                // 初始化计算时差
+                countTime();
+                dayValue = dayDom.value;
+            })()
 
             // 添加事件
-            // 点击年份 初始化所有事件
-            yearDom.addEventListener('change', function () {
-                monthDom.value = 1;
-                loopDay();
-                hourDom.value = 0;
-                miniteDom.value = 0;
-                secondDom.value = 0;
-                // 开始计算时差
-                countTime();
-            }, true)
             // 根据所选月份遍历日
             monthDom.addEventListener('change', function () {
                 loopDay(this.value);
+                // 非2 -> 2                
+                if (this.value == 2 && dayValue > getDayLength(2)) {
+                    dayDom.value = 1;
+                }else{
+                    dayDom.value = dayValue;
+                }
                 // 开始计算时差
                 countTime();
             }, true);
-            // 集体绑定事件
-            [dayDom, hourDom, miniteDom, secondDom].map(dom => {
+            // 其他时间遍历绑定事件
+            [yearDom, dayDom, hourDom, miniteDom, secondDom].map(dom => {
                 dom.addEventListener('change', function () {
+                    if (dom == dayDom) {
+                        if (dayValue == this.value) {
+                            return;
+                        }
+                        dayValue = this.value
+                    }
                     // 开始计算时差
                     countTime();
                 }, true);
