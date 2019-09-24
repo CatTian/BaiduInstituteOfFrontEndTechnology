@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>基础练习</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+        }
+
+        .wrapper input {
+            height: 20px;
+            line-height: 20px;
+            width: 178px;
+            padding: 5px 10px;
+        }
+
+        .email-sug {
+            width: 200px;
+            border: 1px solid #cccccc;
+        }
+
+        .email-sug li {
+            height: 25px;
+            line-height: 25px;
+            color: dimgray;
+            list-style: none;
+            text-align: left;
+            padding-left: 10px;
+            cursor: pointer;
+        }
+
+        .email-sug li:hover {
+            background-color: rgb(255, 254, 211);
+        }
+
+        .email-sug li.active {
+            background-color: #c7fffb;
+        }
+
+        .email-sug li.select {
+            background-color: rgb(255, 209, 217);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <input id="email-input" type="text" autofocus>
+        <ul id="email-sug-wrapper" class="email-sug"></ul>
+    </div>
+    <script>
+        // 邮箱后缀List参考
+        const postfixList = ['163.com', 'gmail.com', '126.com', 'qq.com', '263.net'];
+        const emailInputDom = document.getElementById('email-input');
+        const emailSugWrapperDom = document.getElementById('email-sug-wrapper');
+        let nowSelectTipIndex = 0;
+
+        // 键盘输入事件
+        emailInputDom.onkeyup = function (e) {
+            // 获取用户输入， 生成提示框中的提示内容， 将提示内容添加到email - sug - wrapper中
+            // 控制email - sug - wrapper的显示 / 隐藏状态
+            if (e.defaultPrevented) {
+                return;
+            }
+            let value = getInputInfo(this.value);
+            outPutEmailTips(value);
+            toggleWrapper(value);
+
+            // 只有在 warpper 出现时才会出发三个特殊键事件
+            const wrapperShow = isWrapperShow();
+            if (wrapperShow) {
+                checkKeyEvent(e);
+            }
+
+        }
+        // 点击事件
+        document.querySelector('.wrapper').onclick = function (e) {
+            if (e.target.nodeName == 'LI') {
+                const value = e.target.getAttribute('value')
+                emailInputDom.value = value;
+                hideWrapper();
+                getFocus();
+            }
+        }
+        // 拿到input输入框的输入内容trim后返回
+        function getInputInfo(str) {
+            return htmlEncodeByRegExp(str.trim());
+        }
+        // 生成提示框中的提示内容
+        function emailTips(str) {
+            const atIndex = str.indexOf('@');
+            let beforePostfix = '';
+            let alterPostfix = '';
+            let listDom = '';
+            // 判断含有@字符，获取@字符之前的字符串
+            if (atIndex > -1) {
+                alterPostfix = str.slice(atIndex + 1);
+                str = htmlDecodeByRegExp(str.slice(0, atIndex));
+            }
+            postfixList.map((value, index) => {
+                const active = alterPostfix.length && new RegExp('^' + alterPostfix).test(value) ?
+                    ' active' : '';
+                const select = index === nowSelectTipIndex ? ' select' : '';
+
+                listDom += '<li class="' + active + select + '" value="' + str +
+                    '\u0040' + value + '">' + str +
+                    '\u0040' + value + '</li>';
+            })
+            return listDom
+        }
+        // 将提示内容添加到email - sug - wrapper中
+        function outPutEmailTips(str) {
+            // 获取生成提示框中的提示内容
+            // 将内容添加到email - sug - wrapper中
+            emailSugWrapperDom.innerHTML = emailTips(str);
+        }
+        // 控制email-sug-wrapper的显示/隐藏状态
+        function toggleWrapper(userInput) {
+            const WrapperShow = isWrapperShow();
+            // 隐藏
+            if (userInput.length < 1) {
+                if (!WrapperShow) {
+                    return;
+                }
+                hideWrapper();
+            } else { // 显示
+                if (WrapperShow) {
+                    return;
+                }
+                showWrapper();
+                // 重置选中位置
+                nowSelectTipIndex = 0;
+            }
+        }
+        // 显示提示框
+        function showWrapper() {
+            emailSugWrapperDom.style.display = 'block';
+        }
+        // 隐藏提示框
+        function hideWrapper() {
+            emailSugWrapperDom.style.display = 'none';
+        }
+        // 用正则表达式实现html转码
+        function htmlEncodeByRegExp(str) {
+            var s = "";
+            var s = "";
+            if (str.length == 0) return "";
+            s = str.replace(/&/g, "&amp;");
+            s = s.replace(/</g, "&lt;");
+            s = s.replace(/>/g, "&gt;");
+            s = s.replace(/\s/g, "&nbsp;");
+            s = s.replace(/\'/g, "&#39;");
+            s = s.replace(/\"/g, "&quot;");
+            return s;
+        }
+        // 用正则表达式实现html解码
+        function htmlDecodeByRegExp(str) {
+            var s = "";
+            if (str.length == 0) return "";
+            s = str.replace(/&amp;/g, "&");
+            s = s.replace(/&lt;/g, "<");
+            s = s.replace(/&gt;/g, ">");
+            s = s.replace(/&nbsp;/g, " ");
+            s = s.replace(/&#39;/g, "\'");
+            s = s.replace(/&quot;/g, "\"");
+            return s;
+        }
+        // 判断wrapper是否显示
+        function isWrapperShow() {
+            return emailSugWrapperDom.style.display == 'block' ? true : false;
+        }
+        // 添加 select class
+        function addClassSelect(index) {
+            document.querySelectorAll('li')[index].classList.add('select');
+        }
+
+        function removeClassSelect() {
+            document.querySelector('li.select').classList.remove('select');
+        }
+        // 重置选中状态
+        function initNowSelectTipIndex() {
+            nowSelectTipIndex = 0;
+        }
+        // up键
+        function selectUp() {
+            removeClassSelect()
+            if (nowSelectTipIndex === 0) {
+                nowSelectTipIndex = document.querySelectorAll('li').length - 1;
+            } else {
+                nowSelectTipIndex--;
+            }
+            addClassSelect(nowSelectTipIndex);
+        }
+        // down键
+        function selectDown() {
+            removeClassSelect();
+            if (nowSelectTipIndex === document.querySelectorAll('li').length - 1) {
+                initNowSelectTipIndex();
+            } else {
+                nowSelectTipIndex++;
+            }
+            addClassSelect(nowSelectTipIndex);
+        }
+        // 监听特殊3个键的键盘事件
+        function checkKeyEvent(e) {
+            // 按的是上键
+            if (e.key === 'ArrowUp') {
+                selectUp();
+            }
+            // 按的是下键
+            if (e.key === 'ArrowDown') {
+                selectDown();
+            }
+            // 按的是回车
+            if (e.key === 'Enter') {
+                emailInputDom.value = document.querySelector('li.select').getAttribute('value');
+                initNowSelectTipIndex();
+                hideWrapper();
+                getFocus();
+            }
+            // 按 esc 全选
+            if (e.key === 'Escape') {
+                emailInputDom.select();
+            }
+
+        }
+        // 输入框重新获取焦点
+        function getFocus() {
+            emailInputDom.focus();
+        }
+    </script>
+</body>
+
+</html>
