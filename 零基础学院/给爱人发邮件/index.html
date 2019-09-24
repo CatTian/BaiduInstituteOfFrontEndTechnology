@@ -60,42 +60,38 @@
         const emailInputDom = document.getElementById('email-input');
         const emailSugWrapperDom = document.getElementById('email-sug-wrapper');
         let nowSelectTipIndex = 0;
-
         // 键盘输入事件
         emailInputDom.onkeyup = function (e) {
             // 获取用户输入， 生成提示框中的提示内容， 将提示内容添加到email - sug - wrapper中
             // 控制email - sug - wrapper的显示 / 隐藏状态
-            if (e.defaultPrevented) {
+            const event = e || window.event;
+            if (event.defaultPrevented) {
                 return;
             }
             let value = getInputInfo(this.value);
             outPutEmailTips(value);
             toggleWrapper(value);
-
             // 只有在 warpper 出现时才会出发三个特殊键事件
             const wrapperShow = isWrapperShow();
             if (wrapperShow) {
-                checkKeyEvent(e);
+                checkKeyEvent(event);
             }
-
         }
         // 点击事件
-        document.querySelector('.wrapper').onclick = function (e) {
-            if (e.target.nodeName == 'LI') {
-                const value = e.target.getAttribute('value')
-                emailInputDom.value = value;
-                hideWrapper();
-                getFocus();
-            }
+        document.querySelector('.email-sug').onclick = function (e) {
+            const event = e || window.event;
+            const value = event.target.getAttribute('value');
+            emailInputDom.value = value;
+            hideWrapper();
+            getFocus();
         }
         // 拿到input输入框的输入内容trim后返回
         function getInputInfo(str) {
             return htmlEncodeByRegExp(str.trim());
         }
         // 生成提示框中的提示内容
-        function emailTips(str) {
+        function outPutEmailTips(str) {
             const atIndex = str.indexOf('@');
-            let beforePostfix = '';
             let alterPostfix = '';
             let listDom = '';
             // 判断含有@字符，获取@字符之前的字符串
@@ -103,22 +99,31 @@
                 alterPostfix = str.slice(atIndex + 1);
                 str = htmlDecodeByRegExp(str.slice(0, atIndex));
             }
-            postfixList.map((value, index) => {
-                const active = alterPostfix.length && new RegExp('^' + alterPostfix).test(value) ?
-                    ' active' : '';
-                const select = index === nowSelectTipIndex ? ' select' : '';
-
-                listDom += '<li class="' + active + select + '" value="' + str +
-                    '\u0040' + value + '">' + str +
-                    '\u0040' + value + '</li>';
-            })
-            return listDom
-        }
-        // 将提示内容添加到email - sug - wrapper中
-        function outPutEmailTips(str) {
-            // 获取生成提示框中的提示内容
-            // 将内容添加到email - sug - wrapper中
-            emailSugWrapperDom.innerHTML = emailTips(str);
+            // 初始化推荐列表
+            if (emailSugWrapperDom.innerHTML == '') {
+                postfixList.map((value, index) => {
+                    const emailStr = str + '\u0040' + value;
+                    listDom += '<li class="' + (index === 0 ? 'select' : '') + '" value="' + emailStr + '">' +
+                        emailStr +
+                        '</li>';
+                });
+                emailSugWrapperDom.innerHTML = listDom;
+            } else { // 根据输入改变元素属性值和内容，减少重绘
+                postfixList.map((value, index) => {
+                    const liDom = document.querySelectorAll('li')[index];
+                    const emailStr = str + '\u0040' + value;
+                    liDom.classList.remove('active');
+                    liDom.classList.remove('select')
+                    liDom.setAttribute('value', emailStr);
+                    liDom.innerHTML = emailStr;
+                    if (index === nowSelectTipIndex) {
+                        liDom.classList.add('select');
+                    }
+                    if (alterPostfix.length && new RegExp('^' + alterPostfix).test(value)) {
+                        liDom.classList.add('active');
+                    }
+                });
+            }
         }
         // 控制email-sug-wrapper的显示/隐藏状态
         function toggleWrapper(userInput) {
@@ -179,7 +184,7 @@
         function addClassSelect(index) {
             document.querySelectorAll('li')[index].classList.add('select');
         }
-
+        // 删除 select class
         function removeClassSelect() {
             document.querySelector('li.select').classList.remove('select');
         }
@@ -228,7 +233,6 @@
             if (e.key === 'Escape') {
                 emailInputDom.select();
             }
-
         }
         // 输入框重新获取焦点
         function getFocus() {
